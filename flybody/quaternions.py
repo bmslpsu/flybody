@@ -385,3 +385,25 @@ def quat_to_angvel(quat, dt=1.):
 def vec_global_to_local(vec, body_quat):
     """Convert vector in global coordinates to body's local reference frame."""
     return rotate_vec_with_quat(vec, reciprocal_quat(body_quat))
+
+def quat2euler(quat):
+    """
+    Adapted from https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
+    
+    Args:
+        quat: Orientation quaternion, (B,4)
+    Returns:
+        3-2-1 Euler angle representation, (B,3)
+    """
+    sinr_cosp   = 2*(quat[...,0]*quat[...,1]+quat[...,2]*quat[...,3])
+    cosr_cosp   = 1-2*(quat[...,1]**2 + quat[...,2]**2)
+    sinp        = np.sqrt(1+2*(quat[...,0]*quat[...,2]+quat[...,1]*quat[...,3]))
+    cosp        = np.sqrt(1-2*(quat[...,0]*quat[...,2]+quat[...,1]*quat[...,3]))
+    siny_cosp   = 2*(quat[...,0]*quat[...,3]+quat[...,1]*quat[...,2])
+    cosy_cosp   = 1-2*(quat[...,2]*2+quat[...,3]**2)
+
+    return np.array([
+        np.arctan2(sinr_cosp,cosr_cosp),
+        2*np.arctan2(sinp,cosp)-np.pi/2.,
+        np.arctan2(siny_cosp,cosy_cosp)
+    ]) 
